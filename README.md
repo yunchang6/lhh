@@ -1,11 +1,12 @@
 #运常
-<!DOCTYPE html>
 <html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>浪漫烟花效果</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=swap'); /* 引入行楷字体 */
+        
         body {
             margin: 0;
             overflow: hidden;
@@ -14,43 +15,89 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            position: relative;
+            flex-direction: column;
         }
         canvas {
             display: block;
+            width: 100%;
+            height: 100%;
         }
-        #toggleButton {
+        #controls {
             position: absolute;
             bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .controlButton {
+            padding: 12px 24px;
             background-color: #ff4081;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 25px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             z-index: 10;
-            font-size: 16px;
+            font-size: 18px;
+            font-family: 'Zhi Mang Xing', cursive;
+            transition: background-color 0.3s, transform 0.3s;
         }
-        #toggleButton:hover {
+        .controlButton:hover {
             background-color: #ff79a6;
+            transform: scale(1.05);
+        }
+        #backgroundText, #newYearText {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10vw; /* 使用相对单位以适应不同屏幕 */
+            font-family: 'Zhi Mang Xing', cursive; /* 使用行楷字体 */
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            -webkit-background-clip: text;
+            color: transparent;
+            z-index: 1;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out; /* 添加淡入淡出效果 */
+        }
+        #backgroundText {
+            top: 40%;
+        }
+        #newYearText {
+            top: 60%;
         }
     </style>
 </head>
 <body>
+    <div id="backgroundText">欢欢</div>
+    <div id="newYearText">新年快乐</div>
     <canvas id="fireworksCanvas"></canvas>
     <audio id="fireworkSound" src="firework.mp3"></audio>
-    <button id="toggleButton">开始烟花</button>
+    <div id="controls">
+        <button class="controlButton" id="toggleButton">开始烟花</button>
+        <button class="controlButton" id="type1Button">普通烟花</button>
+        <button class="controlButton" id="type2Button">大烟花</button>
+        <button class="controlButton" id="type3Button">小烟花</button>
+        <button class="controlButton" id="type4Button">特殊烟花</button>
+    </div>
     <script>
         const canvas = document.getElementById('fireworksCanvas');
         const ctx = canvas.getContext('2d');
         const fireworkSound = document.getElementById('fireworkSound');
         const toggleButton = document.getElementById('toggleButton');
+        const type1Button = document.getElementById('type1Button');
+        const type2Button = document.getElementById('type2Button');
+        const type3Button = document.getElementById('type3Button');
+        const type4Button = document.getElementById('type4Button');
+        const backgroundText = document.getElementById('backgroundText');
+        const newYearText = document.getElementById('newYearText');
         let fireworks = [];
         let particles = [];
         const colors = ['#FF1461', '#18FF92', '#5A87FF', '#FBF38C'];
         let fireworkCount = 0;
         let isFireworksActive = false;
+        let hue = 0;
+        let fireworkType = 0; // 当前烟花类型
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -58,7 +105,23 @@
         toggleButton.addEventListener('click', () => {
             isFireworksActive = !isFireworksActive;
             toggleButton.textContent = isFireworksActive ? '停止烟花' : '开始烟花';
+            if (isFireworksActive) {
+                setTimeout(() => {
+                    backgroundText.style.opacity = 1;
+                }, 3000); // 3秒后显示“欢欢”
+                setTimeout(() => {
+                    newYearText.style.opacity = 1;
+                }, 18000); // 18秒后显示“新年快乐”
+            } else {
+                backgroundText.style.opacity = 0;
+                newYearText.style.opacity = 0;
+            }
         });
+
+        type1Button.addEventListener('click', () => fireworkType = 0);
+        type2Button.addEventListener('click', () => fireworkType = 1);
+        type3Button.addEventListener('click', () => fireworkType = 2);
+        type4Button.addEventListener('click', () => fireworkType = 3);
 
         class Firework {
             constructor(x, y, targetX, targetY) {
@@ -103,7 +166,7 @@
                 this.distanceTraveled = this.calculateDistance(this.x, this.y, this.x + vx, this.y + vy);
 
                 if (this.distanceTraveled >= this.distanceToTarget) {
-                    createTextParticles(this.targetX, this.targetY, "欢欢");
+                    createParticles(this.targetX, this.targetY, fireworkType);
                     fireworks.splice(index, 1);
                     fireworkSound.currentTime = 0;
                     fireworkSound.play();
@@ -168,20 +231,27 @@
             }
         }
 
-        function createTextParticles(x, y, text) {
-            ctx.font = "30px Arial";
-            ctx.fillStyle = "white";
-            ctx.fillText(text, x, y);
-            const textWidth = ctx.measureText(text).width;
-            const imageData = ctx.getImageData(x, y - 30, textWidth, 30);
-            ctx.clearRect(x, y - 30, textWidth, 30);
+        function createParticles(x, y, type) {
+            let particleCount;
+            switch (type) {
+                case 0: // 普通烟花
+                    particleCount = 100;
+                    break;
+                case 1: // 大烟花
+                    particleCount = 200;
+                    break;
+                case 2: // 小烟花
+                    particleCount = 50;
+                    break;
+                case 3: // 特殊烟花
+                    particleCount = 150;
+                    break;
+                default:
+                    particleCount = 100;
+            }
 
-            for (let i = 0; i < imageData.data.length; i += 4) {
-                if (imageData.data[i + 3] > 128) {
-                    const particleX = x + (i / 4) % textWidth;
-                    const particleY = y - 30 + Math.floor((i / 4) / textWidth);
-                    particles.push(new Particle(particleX, particleY, Math.random() * 360));
-                }
+            while (particleCount--) {
+                particles.push(new Particle(x, y, Math.random() * 360));
             }
         }
 
@@ -205,13 +275,25 @@
                 particles[j].update(j);
             }
 
-            if (isFireworksActive && Math.random() < 0.05) { // 调整发射频率
+            if (isFireworksActive && Math.random() < 0.1) { // 增加发射频率
                 const startX = Math.random() * canvas.width; // 随机化发射点
                 const startY = canvas.height;
                 const targetX = Math.random() * canvas.width;
                 const targetY = Math.random() * canvas.height / 2; // 确保目标位置在页面上半部分
                 fireworks.push(new Firework(startX, startY, targetX, targetY));
                 fireworkCount++; // 增加烟花数量
+            }
+
+            // 更新背景文字颜色，颜色变化速度减缓
+            if (isFireworksActive) {
+                hue += 0.5; // 调整颜色变化速度
+                const gradient = `linear-gradient(45deg, hsl(${hue}, 100%, 50%), hsl(${(hue + 60) % 360}, 100%, 50%), hsl(${(hue + 120) % 360}, 100%, 50%), hsl(${(hue + 180) % 360}, 100%, 50%), hsl(${(hue + 240) % 360}, 100%, 50%), hsl(${(hue + 300) % 360}, 100%, 50%))`;
+                backgroundText.style.background = gradient;
+                backgroundText.style.webkitBackgroundClip = 'text';
+                backgroundText.style.color = 'transparent';
+                newYearText.style.background = gradient;
+                newYearText.style.webkitBackgroundClip = 'text';
+                newYearText.style.color = 'transparent';
             }
         }
 
