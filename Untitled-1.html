@@ -30,21 +30,21 @@
             gap: 10px;
         }
         .controlButton {
-            padding: 12px 24px;
+            padding: 8px 16px;
             background-color: #ff4081;
             color: white;
             border: none;
-            border-radius: 25px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             z-index: 10;
-            font-size: 18px;
+            font-size: 14px;
             font-family: 'Zhi Mang Xing', cursive;
             transition: background-color 0.3s, transform 0.3s;
         }
         .controlButton:hover {
             background-color: #ff79a6;
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
         #backgroundText, #newYearText {
             position: absolute;
@@ -111,7 +111,7 @@
                 }, 3000); // 3秒后显示“欢欢”
                 setTimeout(() => {
                     newYearText.style.opacity = 1;
-                }, 18000); // 18秒后显示“新年快乐”
+                }, 9000); // 9秒后显示“新年快乐”
             } else {
                 backgroundText.style.opacity = 0;
                 newYearText.style.opacity = 0;
